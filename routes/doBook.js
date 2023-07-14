@@ -1,8 +1,9 @@
 const express = require('express')
+const router = express.Router()
 const { v4: uuid } = require('uuid')
 
 class Book {
-    constructor(id=uuid(), title="", description="", authors="", favorite="", fileCover="", fileName="") {
+    constructor(id=uuid(), title="", description="", authors="", favorite=false, fileCover="", fileName="", fileBook="") {
         this.id = id
         this.title = title
         this.description = description
@@ -13,34 +14,17 @@ class Book {
     }
 }
 
+const book1 = new Book('123', 'title', 'desc', 'Pushkin', true, 'fileCover', 'image.png', 'books')
+
 const stor = {
-    books: []
+    books: [book1]
 }
 
-const app = express()
-app.use(express.json())
-
-app.get('/api/books', (req, res) => {
+router.get('/api/books', (req, res) => {
     const {books} = stor
     res.json(books)
 })
-app.get('/api/books/:id', (req, res) => {
-    const {books} = stor
-    const {id} = req.params
-    const index = books.findIndex(el => el.id === id)
-
-    if (index !== -1) {
-        res.json(books[index])
-    } else {
-        res.status(404)
-        res.json('404! Такой книги не сущесвтует!')
-    }
-})
-app.post('/api/user/login', (req, res) => {
-    res.status(201)
-    res.json({ id: 1, mail: "test@mail.ru" })
-})
-app.post('/api/books', (req, res) => {
+router.post('/api/books', (req, res) => {
     const {books} = stor
     const {title, desc} = req.body
 
@@ -50,7 +34,8 @@ app.post('/api/books', (req, res) => {
     res.status(201)
     res.json(newBook)
 })
-app.put('/api/books/:id', (req, res) => {
+
+router.put('/api/books/:id', (req, res) => {
     const {books} = stor
     const {id} = req.params
     const {title, desc} = req.body
@@ -66,10 +51,10 @@ app.put('/api/books/:id', (req, res) => {
         res.json(books[index])
     } else {
         res.status(404)
-        res.json('404! Такой книги не сущесвтует!')
+        res.json({"Error": "404! Такой книги не сущесвтует!"})
     }
 })
-app.delete('/api/books/:id', (req, res) => {
+router.delete('/api/books/:id', (req, res) => {
     const {books} = stor
     const {id} = req.params
     const index = books.findIndex(el => el.id === id)
@@ -78,8 +63,22 @@ app.delete('/api/books/:id', (req, res) => {
         books.splice(index, 1)
     } else {
         res.status(404)
-        res.json('404! Такой книги не сущесвтует!')
+        res.json({"Error": "404! Такой книги не сущесвтует!"})
     }
 })
-const PORT = process.env.PORT || 4000
-app.listen(PORT)
+router.get('/api/books/:id', (req, res) => {
+    const {books} = stor
+    const {id} = req.params
+    const index = books.findIndex(el => el.id === id)
+
+    if (index !== -1) {
+        res.json(books[index])
+    } else {
+        res.status(404)
+        res.json({"Error": "404! Такой книги не сущесвтует!"})
+    }
+})
+router.get('/api/books/:id/download', (req, res) => {
+    express.static('/download')
+})
+module.exports = router
